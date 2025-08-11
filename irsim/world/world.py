@@ -86,7 +86,7 @@ class World:
 
         # obstacle map
         self.grid_map, self.obstacle_index, self.obstacle_positions = self.gen_grid_map(
-            obstacle_map, mdownsample
+            obstacle_map, mdownsample, offset
         )
 
         # visualization
@@ -108,14 +108,15 @@ class World:
         world_param.time = self.time
         world_param.count = self.count
 
-    def gen_grid_map(self, obstacle_map: Optional[str], mdownsample: int = 1) -> tuple:
+    def gen_grid_map(self, obstacle_map: Optional[str], mdownsample: int = 1, offset: list[float] = [0, 0]) -> tuple:
         """
         Generate a grid map for obstacles.
 
         Args:
             obstacle_map: Path to the obstacle map image.
             mdownsample (int): Downsampling factor.
-
+            offset (list): Offset for the world's position.
+            
         Returns:
             tuple: Grid map, obstacle indices, and positions.
         """
@@ -140,6 +141,9 @@ class World:
 
             obstacle_index = np.array(np.where(grid_map > 50))
             obstacle_positions = obstacle_index * self.reso
+
+            obstacle_positions[0, :] += offset[0]
+            obstacle_positions[1, :] += offset[1]
 
         else:
             grid_map = None
@@ -187,3 +191,19 @@ class World:
 
     def rgb2gray(self, rgb: np.ndarray) -> np.ndarray:
         return np.dot(rgb[..., :3], [0.2989, 0.5870, 0.1140])
+
+    def grid_to_world_coords(self, grid_x: int, grid_y: int) -> tuple:
+        """Convert grid coordinates to world coordinates"""
+        if hasattr(self, 'reso') and self.reso.size > 0:
+            world_x = grid_x * self.reso[0, 0] + self.map_offset[0]
+            world_y = grid_y * self.reso[1, 0] + self.map_offset[1]
+            return world_x, world_y
+        return grid_x, grid_y
+
+    def world_to_grid_coords(self, world_x: float, world_y: float) -> tuple:
+        """Convert world coordinates to grid coordinates"""
+        if hasattr(self, 'reso') and self.reso.size > 0:
+            grid_x = int((world_x - self.map_offset[0]) / self.reso[0, 0])
+            grid_y = int((world_y - self.map_offset[1]) / self.reso[1, 0])
+            return grid_x, grid_y
+        return int(world_x), int(world_y)
