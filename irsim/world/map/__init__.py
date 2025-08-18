@@ -10,6 +10,7 @@ class Map:
         self,
         width: int = 10,
         height: int = 10,
+        offset: list[float] = [0, 0],
         resolution: float = 0.1,
         obstacle_list: Optional[list] = None,
         grid: Optional[np.ndarray] = None,
@@ -20,6 +21,7 @@ class Map:
         Args:
             width (int): width of the map
             height (int): height of the map
+            offset (np.ndarray): offset of the map
             resolution (float): resolution of the map
             obstacle_list (list): list of obstacle objects for collision detection
             grid (np.ndarray): grid map data for collision detection.
@@ -29,6 +31,7 @@ class Map:
             obstacle_list = []
         self.width = width
         self.height = height
+        self.offset = offset
         self.resolution = resolution
         self.obstacle_list = obstacle_list
         self.grid = grid

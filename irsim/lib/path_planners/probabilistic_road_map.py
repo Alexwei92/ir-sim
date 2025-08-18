@@ -75,10 +75,13 @@ class PRMPlanner:
 
         self.rr = robot_radius
         self.obstacle_list = env_map.obstacle_list[:]
-        self.min_x, self.min_y = 0, 0
+        self.min_x, self.min_y = (
+            env_map.offset[0],
+            env_map.offset[1],
+        )
         self.max_x, self.max_y = (
-            env_map.width,
-            env_map.height,
+            env_map.width + env_map.offset[0],
+            env_map.height + env_map.offset[1],
         )
         self.n_sample = n_sample
         self.n_knn = n_knn

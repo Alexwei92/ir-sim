@@ -56,11 +56,15 @@ class RRT:
             Args:
                 env_map (EnvBase): environment where the planning will take place
             """
-            self.xmin, self.ymin = 0, 0
-            self.xmax, self.ymax = (
-                env_map.width,
-                env_map.height,
+            self.xmin, self.ymin = (
+                env_map.offset[0],
+                env_map.offset[1],
             )
+            self.xmax, self.ymax = (
+                env_map.width + env_map.offset[0],
+                env_map.height + env_map.offset[1],
+            )
+            print(self.xmin, self.ymin, self.xmax, self.ymax)
 
     def __init__(
         self,
@@ -83,13 +87,15 @@ class RRT:
             max_iter (int): max iteration count
         """
         self.obstacle_list = env_map.obstacle_list[:]
+        self.min_x, self.min_y = (
+            env_map.offset[0],
+            env_map.offset[1],
+        )
         self.max_x, self.max_y = (
-            env_map.width,
-            env_map.height,
+            env_map.width + env_map.offset[0],
+            env_map.height + env_map.offset[1],
         )
         self.play_area = self.AreaBounds(env_map)
-        self.min_rand = 0.0
-        self.max_rand = max(self.max_x, self.max_y)
         self.expand_dis = expand_dis
         self.path_resolution = path_resolution
         self.goal_sample_rate = goal_sample_rate
@@ -238,8 +244,8 @@ class RRT:
         """
         if random.randint(0, 100) > self.goal_sample_rate:
             rnd = self.Node(
-                random.uniform(self.min_rand, self.max_rand),
-                random.uniform(self.min_rand, self.max_rand),
+                random.uniform(self.min_x, self.max_x),
+                random.uniform(self.min_y, self.max_y),
             )
         else:  # goal point sampling
             rnd = self.Node(self.end.x, self.end.y)
@@ -280,7 +286,7 @@ class RRT:
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
         plt.axis("equal")
-        plt.axis([self.min_rand, self.max_rand, self.min_rand, self.max_rand])
+        plt.axis([self.min_x, self.max_x, self.min_y, self.max_y])
         plt.grid(True)
         plt.pause(0.01)
 
