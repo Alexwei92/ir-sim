@@ -33,10 +33,13 @@ class AStarPlanner:
 
         self.resolution = resolution
         self.obstacle_list = env_map.obstacle_list[:]
-        self.min_x, self.min_y = 0, 0
+        self.min_x, self.min_y = (
+            env_map.offset[0],
+            env_map.offset[1],
+        )
         self.max_x, self.max_y = (
-            env_map.height,
-            env_map.width,
+            env_map.height + env_map.offset[0],
+            env_map.width + env_map.offset[1],
         )
         self.x_width = round((self.max_x - self.min_x) / self.resolution)
         self.y_width = round((self.max_y - self.min_y) / self.resolution)
