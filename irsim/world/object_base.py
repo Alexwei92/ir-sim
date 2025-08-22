@@ -1321,12 +1321,12 @@ class ObjectBase:
                     if not element.get_visible():
                         element.set_visible(True)
 
-                    if self.goal.shape[0] > 2:
-                        goal_state = self.goal
-                    else:
-                        goal_state = np.pad(
-                            self.goal, (0, 1), "constant", constant_values=0
-                        )
+                        if self.goal.shape[0] > 2:
+                            goal_state = self.goal
+                        else:
+                            goal_state = np.pad(
+                                self.goal, (0, 1), "constant", constant_values=0
+                            )
 
                     set_patch_property(
                         element, self.ax, state=goal_state, **goal_kwargs
@@ -1647,7 +1647,7 @@ class ObjectBase:
         self,
         ax,
         goal_state: Optional[np.ndarray] = None,
-        vertices: Optional[np.ndarray] = None,
+        vertices: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
         goal_color: Optional[str] = None,
         goal_zorder: Optional[int] = 1,
         goal_alpha: Optional[float] = 0.5,

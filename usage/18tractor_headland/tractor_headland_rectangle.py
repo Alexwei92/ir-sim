@@ -5,6 +5,8 @@ from irsim.lib.path_planners.probabilistic_road_map import PRMPlanner
 from irsim.lib.path_planners.rrt import RRT
 from irsim.lib.path_planners.rrt_star import RRTStar
 
+import numpy as np
+
 env = irsim.make(save_ani=False, full=False)
 
 env_map = env.get_map()
@@ -28,12 +30,17 @@ planner = AStarPlanner(
 robot_info = env.get_robot_info()
 robot_state = env.get_robot_state()
 trajectory = planner.planning(robot_state, robot_info.goal)
+trajectory = np.flip(trajectory, axis=1)
+trajectory = np.concatenate([robot_state[:2], trajectory, robot_info.goal[:2]], axis=1)
 
 if trajectory is not None:
     env.draw_trajectory(trajectory, traj_type="r-")
     print("Trajectory found")
 else:
     print("No trajectory found")
+    
+    
+env.load_behavior("custom_behavior_pure_pursuit")
     
 for _i in range(1000):
     env.step()
