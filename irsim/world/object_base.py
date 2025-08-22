@@ -1309,20 +1309,24 @@ class ObjectBase:
                         k: v for k, v in goal_kwargs.items() if v is not None
                     }
 
-                    if self.goal is None:
-                        element.set_visible(False)
-                        continue
-                    if not element.get_visible():
-                        element.set_visible(True)
+                    if not isinstance(element, list):
+                        element = [element]                      
+                        
+                    for e in element:
+                        if self.goal is None:
+                            e.set_visible(False)
+                            continue
+                        if not e.get_visible():
+                            e.set_visible(True)
 
-                    if self.goal.shape[0] > 2:
-                        goal_state = self.goal
-                    else:
-                        goal_state = np.pad(
-                            self.goal, (0, 1), "constant", constant_values=0
-                        )
+                        if self.goal.shape[0] > 2:
+                            goal_state = self.goal
+                        else:
+                            goal_state = np.pad(
+                                self.goal, (0, 1), "constant", constant_values=0
+                            )
 
-                    self.set_element_property(element, goal_state, **goal_kwargs)
+                        self.set_element_property(e, goal_state, **goal_kwargs)
 
                 elif attr == "arrow_patch":
                     # Update arrow patch using set_element_property
@@ -1673,7 +1677,7 @@ class ObjectBase:
         self,
         ax,
         goal_state: Optional[np.ndarray] = None,
-        vertices: Optional[np.ndarray] = None,
+        vertices: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
         goal_color: Optional[str] = None,
         goal_zorder: Optional[int] = 1,
         goal_alpha: Optional[float] = 0.5,
@@ -1699,6 +1703,23 @@ class ObjectBase:
         if goal_state is None:
             return
 
+        if self.shape == "multipolygon" and isinstance(vertices, list):
+            goal_patch_list = []
+            for v in vertices:
+                goal_patch = MplPolygon(xy=v.T, color=goal_color)
+                
+                if isinstance(ax, Axes3D):
+                    art3d.patch_2d_to_3d(goal_patch, z=self.z)
+                
+                goal_patch.set_zorder(int(goal_zorder) if goal_zorder is not None else 1)
+                ax.add_patch(goal_patch)
+                
+                self.plot_patch_list.append(goal_patch)
+                goal_patch_list.append(goal_patch)
+                
+            self.goal_patch = goal_patch_list
+            return
+        
         if self.shape == "circle":
             goal_patch = Circle(
                 xy=(float(goal_state[0, 0]), float(goal_state[1, 0])),
@@ -1889,7 +1910,7 @@ class ObjectBase:
                 height=self.width,
                 angle=r_phi_ang,
                 edgecolor=trail_edgecolor,
-                fill=False,
+                fill=trail_fill,
                 alpha=trail_alpha,
                 linewidth=trail_linewidth,
                 facecolor=trail_color,
@@ -1907,7 +1928,7 @@ class ObjectBase:
                 edgecolor=trail_color,
                 alpha=trail_alpha,
                 linewidth=trail_linewidth,
-                fill=False,
+                fill=trail_fill,
                 facecolor=trail_color,
             )
 
@@ -1915,6 +1936,22 @@ class ObjectBase:
                 art3d.patch_2d_to_3d(trail, z=self.z)
 
             ax.add_patch(trail)
+            
+        elif trail_type == "multipolygon" and isinstance(vertices, list):
+            for v in vertices:
+                trail = MplPolygon(
+                    v.T,
+                    edgecolor=trail_color,
+                    alpha=trail_alpha,
+                    linewidth=trail_linewidth,
+                    fill=trail_fill,
+                    facecolor=trail_color,
+                )
+
+                if isinstance(ax, Axes3D):
+                    art3d.patch_2d_to_3d(trail, z=self.z)
+
+                ax.add_patch(trail)
 
         elif trail_type == "circle":
             # For circle, use the state position as center

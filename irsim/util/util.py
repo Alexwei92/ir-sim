@@ -338,7 +338,7 @@ def geometry_transform(geometry: Any, state: np.ndarray) -> Any:
     return affine_transform(geometry, [a, b, d, e, xoff, yoff])
 
 
-def vertices_transform(vertices: np.ndarray, state: np.ndarray) -> Optional[np.ndarray]:
+def vertices_transform(vertices: Union[np.ndarray, list[np.ndarray]], state: np.ndarray) -> Optional[Union[np.ndarray, list[np.ndarray]]]:
     """
     Transform vertices using a state.
 
@@ -354,6 +354,10 @@ def vertices_transform(vertices: np.ndarray, state: np.ndarray) -> Optional[np.n
         return None
 
     trans, rot = get_transform(state)
+
+    if isinstance(vertices, list):
+        return [rot @ vertex + trans for vertex in vertices]
+    
     return rot @ vertices + trans
 
 

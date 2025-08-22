@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 from shapely import (
@@ -7,6 +7,7 @@ from shapely import (
     MultiPoint,
     Point,
     Polygon,
+    MultiPolygon,
     bounds,
     envelope,
     is_valid,
@@ -166,6 +167,13 @@ class geometry_handler(ABC):
 
     @property
     def vertices(self):
+        if self.name == "multipolygon": # a list of vertices
+            vertices_list = []
+            for polygon in self.geometry.geoms:
+                vertices = polygon.exterior.coords._coords.T[:, :-1]
+                vertices_list.append(vertices)
+            return vertices_list
+
         if self.name == "linestring":
             x = self.geometry.xy[0]
             y = self.geometry.xy[1]
@@ -180,10 +188,17 @@ class geometry_handler(ABC):
         assert "this property is renamed to be original_vertices"
 
     @property
-    def original_vertices(self) -> Optional[np.ndarray]:
+    def original_vertices(self) -> Optional[Union[np.ndarray, list[np.ndarray]]]:
         """
         Get the original vertices of the geometry.
         """
+
+        if self.name == "multipolygon": # a list of vertices
+            vertices_list = []
+            for polygon in self._original_geometry.geoms:
+                vertices = polygon.exterior.coords._coords.T[:, :-1]
+                vertices_list.append(vertices)
+            return vertices_list
 
         if self.name == "linestring":
             x = self._original_geometry.xy[0]
@@ -283,6 +298,43 @@ class PolygonGeometry(geometry_handler):
         polygon = envelope(valid_polygons)
 
         return make_valid(polygon)
+
+
+class MultiPolygonGeometry(geometry_handler):
+    def __init__(self, name: str = "multipolygon", **kwargs):
+        super().__init__(name, **kwargs)
+
+    def construct_original_geometry(
+        self,
+        vertices_list=None,
+        **kwargs,
+    ):
+        """
+        Construct a multipolygon geometry.
+
+        Args:
+            vertices_list: a list of vertices
+            **kwargs: see random_generate_polygon()
+        """
+        if vertices_list is None:
+            print("No vertices_list provided for multipolygon. Using default square")
+            vertices_list = [[
+                (-1, -1),
+                (1, -1),
+                (1, 1),
+                (-1, 1),
+            ]]
+
+        polygons = [Polygon(vertices) for vertices in vertices_list]
+        for i, polygon in enumerate(polygons):
+            if not is_valid(polygon):
+                print("Invalid polygon. Making it valid.")
+                valid_polygon = make_valid(polygon)
+                polygons[i] = make_valid(envelope(valid_polygon))   
+
+        multipolygon = MultiPolygon(polygons)
+
+        return multipolygon
 
 
 class RectangleGeometry(geometry_handler):
@@ -421,6 +473,9 @@ class GeometryFactory:
 
         if name == "polygon":
             return PolygonGeometry(name, **kwargs)
+        
+        if name == "multipolygon":
+            return MultiPolygonGeometry(name, **kwargs)
 
         if name == "rectangle":
             return RectangleGeometry(name, **kwargs)
