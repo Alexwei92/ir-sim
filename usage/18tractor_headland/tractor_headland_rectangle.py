@@ -40,7 +40,7 @@ else:
     print("No trajectory found")
     
     
-env.load_behavior("custom_behavior_pure_pursuit")
+# env.load_behavior("custom_behavior_pure_pursuit")
     
 for _i in range(1000):
     env.step()

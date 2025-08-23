@@ -17,10 +17,9 @@ robot:
     vel_max: [2.0, 0.55]
     vel_min: [-2.0, -0.55] 
     acce: [1.0, 1.0]
-    # behavior: {name: 'dash'}
-    behavior: {name: 'pure_pursuit'}
+    behavior: {name: 'dash'}
     arrive_mode: 'position'
-    goal_threshold: 0.25
+    goal_threshold: 0.3
     plot:
       show_trail: True
       trail_fill: True
