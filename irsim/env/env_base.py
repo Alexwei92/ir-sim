@@ -755,6 +755,12 @@ class EnvBase:
 
         return self.robot._state
 
+    def get_robot_velocity(self) -> np.ndarray:
+        """
+        Get the current velocity of the robot.
+        """
+        return self.robot._velocity
+
     def get_lidar_scan(self, id: int = 0) -> dict[str, Any]:
         """
         Get the lidar scan of the robot with the given id.
