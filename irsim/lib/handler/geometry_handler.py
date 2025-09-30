@@ -167,7 +167,7 @@ class geometry_handler(ABC):
 
     @property
     def vertices(self):
-        if self.name == "multipolygon": # a list of vertices
+        if self.name == "multipolygon" or self.name == "mosaic": # a list of vertices
             vertices_list = []
             for polygon in self.geometry.geoms:
                 vertices = polygon.exterior.coords._coords.T[:, :-1]
@@ -193,7 +193,7 @@ class geometry_handler(ABC):
         Get the original vertices of the geometry.
         """
 
-        if self.name == "multipolygon": # a list of vertices
+        if self.name == "multipolygon" or self.name == "mosaic": # a list of vertices
             vertices_list = []
             for polygon in self._original_geometry.geoms:
                 vertices = polygon.exterior.coords._coords.T[:, :-1]
@@ -474,7 +474,7 @@ class GeometryFactory:
         if name == "polygon":
             return PolygonGeometry(name, **kwargs)
         
-        if name == "multipolygon":
+        if name == "multipolygon" or name == "mosaic":
             return MultiPolygonGeometry(name, **kwargs)
 
         if name == "rectangle":

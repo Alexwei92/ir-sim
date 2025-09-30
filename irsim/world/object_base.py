@@ -1703,7 +1703,7 @@ class ObjectBase:
         if goal_state is None:
             return
 
-        if self.shape == "multipolygon" and isinstance(vertices, list):
+        if (self.shape == "multipolygon" or self.shape == "mosaic") and isinstance(vertices, list):
             goal_patch_list = []
             for v in vertices:
                 goal_patch = MplPolygon(xy=v.T, color=goal_color)
@@ -1937,7 +1937,7 @@ class ObjectBase:
 
             ax.add_patch(trail)
             
-        elif trail_type == "multipolygon" and isinstance(vertices, list):
+        elif (trail_type == "multipolygon" or trail_type == "mosaic") and isinstance(vertices, list):
             for v in vertices:
                 trail = MplPolygon(
                     v.T,
