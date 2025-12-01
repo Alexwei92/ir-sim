@@ -60,7 +60,24 @@ class geometry_handler(ABC):
             Transformed geometry.
         """
 
-        self.geometry = geometry_transform(self._original_geometry, state)
+        if self.name == "tractor_trailer" and hasattr(self, "num_tractor_polys"):
+            tractor_state = state[:3]
+            tractor_geometry = geometry_transform(
+                MultiPolygon(list(self._original_geometry.geoms)[:self.num_tractor_polys]), tractor_state
+            )
+
+            trailer_geometry_local = geometry_transform(
+                MultiPolygon(list(self._original_geometry.geoms)[self.num_tractor_polys:]), [self.hitch_length + self.trailer_length, 0, 0]
+            )
+            trailer_yaw = state[4] + state[2]
+            trailer_x = state[0] - self.hitch_length * np.cos(state[2]) - self.trailer_length * np.cos(trailer_yaw)
+            trailer_y = state[1] - self.hitch_length * np.sin(state[2]) - self.trailer_length * np.sin(trailer_yaw)
+            trailer_state = np.array([trailer_x, trailer_y, trailer_yaw])
+            trailer_geometry = geometry_transform(trailer_geometry_local, trailer_state)
+            
+            self.geometry = MultiPolygon(list(tractor_geometry.geoms) + list(trailer_geometry.geoms))
+        else:
+            self.geometry = geometry_transform(self._original_geometry, state)
 
         return self.geometry
 
@@ -167,7 +184,7 @@ class geometry_handler(ABC):
 
     @property
     def vertices(self):
-        if self.name == "multipolygon" or self.name == "mosaic": # a list of vertices
+        if self.name == "multipolygon" or self.name == "mosaic" or self.name == "tractor_trailer": # a list of vertices
             vertices_list = []
             for polygon in self.geometry.geoms:
                 vertices = polygon.exterior.coords._coords.T[:, :-1]
@@ -193,7 +210,7 @@ class geometry_handler(ABC):
         Get the original vertices of the geometry.
         """
 
-        if self.name == "multipolygon" or self.name == "mosaic": # a list of vertices
+        if self.name == "multipolygon" or self.name == "mosaic" or self.name == "tractor_trailer": # a list of vertices
             vertices_list = []
             for polygon in self._original_geometry.geoms:
                 vertices = polygon.exterior.coords._coords.T[:, :-1]
@@ -337,6 +354,65 @@ class MultiPolygonGeometry(geometry_handler):
         return multipolygon
 
 
+class TractorTrailerGeometry(geometry_handler):
+    def __init__(self, name: str = "tractor_trailer", **kwargs):
+        super().__init__(name, **kwargs)
+        self.trailer_length = kwargs.get("trailer_length", 1.5)
+        self.hitch_length = kwargs.get("hitch_length", 1.0)
+
+    def construct_original_geometry(
+        self,
+        tractor_vertices_list=None,
+        trailer_vertices_list=None,
+        **kwargs,
+    ):
+        """
+        Construct a tractor-trailer geometry.
+
+        Args:
+            tractor_vertices_list: a list of vertices
+            trailer_vertices_list: a list of vertices
+            **kwargs: see random_generate_polygon()
+        """
+        if tractor_vertices_list is None:
+            print("No tractor_vertices_list provided for tractor-trailer. Using default square")
+            tractor_vertices_list = [[
+                (-1, -1),
+                (1, -1),
+                (1, 1),
+                (-1, 1),
+            ]]
+
+        tractor_polygons = [Polygon(vertices) for vertices in tractor_vertices_list]
+        for i, polygon in enumerate(tractor_polygons):
+            if not is_valid(polygon):
+                print("Invalid polygon. Making it valid.")
+                valid_polygon = make_valid(polygon)
+                tractor_polygons[i] = make_valid(envelope(valid_polygon))   
+        
+        if trailer_vertices_list is None:
+            print("No trailer_vertices_list provided for tractor-trailer. Using default square")
+            trailer_vertices_list = [[
+                (-3.5, -1.5),
+                (-1.5, -1.5),
+                (-1.5, 1.5),
+                (-3.5, 1.5),
+            ]]
+
+        trailer_polygons = [Polygon(vertices) for vertices in trailer_vertices_list]
+        for i, polygon in enumerate(trailer_polygons):
+            if not is_valid(polygon):
+                print("Invalid polygon. Making it valid.")
+                valid_polygon = make_valid(polygon)
+                trailer_polygons[i] = make_valid(envelope(valid_polygon))   
+
+        self.num_tractor_polys = len(tractor_polygons)
+        self.num_trailer_polys = len(trailer_polygons)
+        multipolygon = MultiPolygon(tractor_polygons + trailer_polygons)
+        
+        return multipolygon
+
+
 class RectangleGeometry(geometry_handler):
     def __init__(self, name: str = "rectangle", **kwargs):
         super().__init__(name, **kwargs)
@@ -476,6 +552,9 @@ class GeometryFactory:
         
         if name == "multipolygon" or name == "mosaic":
             return MultiPolygonGeometry(name, **kwargs)
+        
+        if name == "tractor_trailer":
+            return TractorTrailerGeometry(name, **kwargs)
 
         if name == "rectangle":
             return RectangleGeometry(name, **kwargs)

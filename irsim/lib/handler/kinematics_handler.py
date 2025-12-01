@@ -7,6 +7,7 @@ from irsim.lib.algorithm.kinematics import (
     ackermann_kinematics,
     differential_kinematics,
     omni_kinematics,
+    tractor_trailer_kinematics,
 )
 
 
@@ -98,6 +99,39 @@ class AckermannKinematics(KinematicsHandler):
         )
 
 
+class TractorTrailerKinematics(KinematicsHandler):
+    def __init__(
+        self,
+        name,
+        noise: bool = False,
+        alpha: Optional[list] = None,
+        mode: str = "steer",
+        wheelbase: float = 1.0,
+        trailer_length: float = 1.5,
+        hitch_length: float = 1.0,
+    ):
+        super().__init__(name, noise, alpha)
+        self.mode = mode
+        self.wheelbase = wheelbase
+        self.trailer_length = trailer_length
+        self.hitch_length = hitch_length
+
+    def step(
+        self, state: np.ndarray, velocity: np.ndarray, step_time: float
+    ) -> np.ndarray:
+        return tractor_trailer_kinematics(
+            state,
+            velocity,
+            step_time,
+            self.noise,
+            self.alpha,
+            self.mode,
+            self.wheelbase,
+            self.trailer_length,
+            self.hitch_length,
+        )
+
+
 # class Rigid3DKinematics(KinematicsHandler):
 
 #     def __init__(self, name, noise, alpha):
@@ -121,6 +155,7 @@ class KinematicsFactory:
         mode: str = "steer",
         wheelbase: Optional[float] = None,
         role: str = "robot",
+        **kwargs
     ) -> KinematicsHandler:
         name = name.lower() if name else None
         if name == "omni":
@@ -131,6 +166,8 @@ class KinematicsFactory:
             return AckermannKinematics(name, noise, alpha, mode, wheelbase or 1.0)
         # elif name == 'rigid3d':
         #     return Rigid3DKinematics(name, noise, alpha)
+        if name == "tractor_trailer":
+            return TractorTrailerKinematics(name, noise, alpha, mode, wheelbase or 1.0, kwargs.get("trailer_length", 1.5), kwargs.get("hitch_length", 1.0))
         if role == "robot":
             print(f"Unknown kinematics type: {name}, the robot will be stationary.")
         else:

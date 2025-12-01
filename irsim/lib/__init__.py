@@ -5,6 +5,7 @@ from irsim.lib.algorithm.kinematics import (
     ackermann_kinematics,
     differential_kinematics,
     omni_kinematics,
+    tractor_trailer_kinematics,
 )
 from irsim.lib.algorithm.rvo import reciprocal_vel_obs
 from irsim.lib.behavior.behavior import Behavior
@@ -16,4 +17,5 @@ kinematics_factory: dict[str, Callable[..., Any]] = {
     "diff": differential_kinematics,
     "acker": ackermann_kinematics,
     "omni": omni_kinematics,
+    "tractor_trailer": tractor_trailer_kinematics,
 }
