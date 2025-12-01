@@ -10,5 +10,6 @@ This package contains different robot types:
 from .robot_acker import RobotAcker
 from .robot_diff import RobotDiff
 from .robot_omni import RobotOmni
+from .robot_tractor_trailer import RobotTractorTrailer
 
-__all__ = ["RobotAcker", "RobotDiff", "RobotOmni"]
+__all__ = ["RobotAcker", "RobotDiff", "RobotOmni", "RobotTractorTrailer"]

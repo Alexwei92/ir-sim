@@ -162,3 +162,80 @@ def omni_kinematics(
         real_velocity = velocity
 
     return state[0:2] + real_velocity * step_time
+
+def tractor_trailer_kinematics(
+    state: np.ndarray,
+    velocity: np.ndarray,
+    step_time: float,
+    noise: bool = False,
+    alpha: Optional[list[float]] = None,
+    mode: str = "steer",
+    wheelbase: float = 1,
+    trailer_length: float = 1.5,
+    hitch_length: float = 1,
+) -> np.ndarray:
+    """
+    Calculate the next state for an Tractor-Trailer (Ackermann steering) system.
+
+    Args:
+        state: A 5x1 vector [x, y, theta, steer_angle, phi] representing the current state.
+            phi = (heading_trailer - heading_tractor), in radians.
+        
+        velocity: A 2x1 vector representing the current velocities, format depends on mode.
+            For "steer" mode, [linear, steer_angle] is expected.
+            For "angular" mode, [linear, angular] is expected.
+        
+        step_time: The time step for the simulation.
+        noise: Boolean indicating whether to add noise to the velocity (default False).
+        alpha: List of noise parameters for the velocity model (default [0.03, 0, 0, 0.03]). alpha[0] and alpha[1] are for linear velocity, alpha[2] and alpha[3] are for angular velocity.
+        mode: The kinematic mode, either "steer" or "angular" (default "steer").
+        wheelbase: The distance between the front and rear axles of the tractor (default 1).
+        trailer_length: The length between the hitch point and the axle of the trailer (default 1.5).
+        hitch_length: The length between the hitch point and the rear axle of the tractor (default 1).
+    
+    Returns:
+        new_state: A 5x1 vector representing the next state.
+    """
+    if alpha is None:
+        alpha = [0.03, 0, 0, 0.03]
+
+    assert state.shape[0] >= 5
+    assert velocity.shape[0] >= 2
+
+    if noise:
+        assert len(alpha) >= 4
+        std_linear = np.sqrt(
+            alpha[0] * (velocity[0, 0] ** 2) + alpha[1] * (velocity[1, 0] ** 2)
+        )
+        std_angular = np.sqrt(
+            alpha[2] * (velocity[0, 0] ** 2) + alpha[3] * (velocity[1, 0] ** 2)
+        )
+        real_velocity = velocity + np.random.normal(
+            [[0], [0]], scale=[[std_linear], [std_angular]]
+        )
+    else:
+        real_velocity = velocity
+
+    theta = state[2, 0]
+    psi = state[3, 0]
+    phi = state[4, 0]
+         
+    if mode == "steer" or mode == "angular":
+        co_matrix = np.array(
+            [[cos(theta), 0],
+            [sin(theta), 0],
+            [tan(psi) / wheelbase, 0],
+            [0, 1],
+            [-sin(phi) / trailer_length - tan(psi) / wheelbase - hitch_length * cos(phi) * tan(psi) / (wheelbase * trailer_length), 0]]
+        )
+
+    d_state = co_matrix @ real_velocity
+    new_state = state + d_state * step_time
+
+    if mode == "steer":
+        new_state[3, 0] = real_velocity[1, 0]
+    
+    new_state[2, 0] = WrapToPi(new_state[2, 0])
+    new_state[4, 0] = WrapToPi(new_state[4, 0])
+
+    return new_state
