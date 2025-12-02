@@ -70,7 +70,7 @@ class geometry_handler(ABC):
             trailer_geometry_local = geometry_transform(
                 MultiPolygon(list(self._original_geometry.geoms)[self.num_tractor_polys:]), [self.hitch_length + self.trailer_length, 0, 0]
             )
-            trailer_yaw = state[4] + state[2]
+            trailer_yaw = state[3] + state[2]
             trailer_x = state[0] - self.hitch_length * np.cos(state[2]) - self.trailer_length * np.cos(trailer_yaw)
             trailer_y = state[1] - self.hitch_length * np.sin(state[2]) - self.trailer_length * np.sin(trailer_yaw)
             trailer_state = np.array([trailer_x, trailer_y, trailer_yaw])

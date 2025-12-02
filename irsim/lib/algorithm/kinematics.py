@@ -178,7 +178,7 @@ def tractor_trailer_kinematics(
     Calculate the next state for an Tractor-Trailer (Ackermann steering) system.
 
     Args:
-        state: A 5x1 vector [x, y, theta, steer_angle, phi] representing the current state.
+        state: A 5x1 vector [x, y, theta, phi, steer_angle] representing the current state.
             phi = (heading_trailer - heading_tractor), in radians.
         
         velocity: A 2x1 vector representing the current velocities, format depends on mode.
@@ -217,25 +217,26 @@ def tractor_trailer_kinematics(
         real_velocity = velocity
 
     theta = state[2, 0]
-    psi = state[3, 0]
-    phi = state[4, 0]
+    phi = state[3, 0]
+    psi = state[4, 0]
          
     if mode == "steer" or mode == "angular":
         co_matrix = np.array(
             [[cos(theta), 0],
             [sin(theta), 0],
             [tan(psi) / wheelbase, 0],
-            [0, 1],
-            [-sin(phi) / trailer_length - tan(psi) / wheelbase - hitch_length * cos(phi) * tan(psi) / (wheelbase * trailer_length), 0]]
+            [-sin(phi) / trailer_length - tan(psi) / wheelbase - hitch_length * cos(phi) * tan(psi) / (wheelbase * trailer_length), 0],
+            [0, 1]
+            ]
         )
 
     d_state = co_matrix @ real_velocity
     new_state = state + d_state * step_time
 
     if mode == "steer":
-        new_state[3, 0] = real_velocity[1, 0]
+        new_state[4, 0] = real_velocity[1, 0]
     
     new_state[2, 0] = WrapToPi(new_state[2, 0])
-    new_state[4, 0] = WrapToPi(new_state[4, 0])
+    new_state[3, 0] = WrapToPi(new_state[3, 0])
 
     return new_state
