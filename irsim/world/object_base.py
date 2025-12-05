@@ -14,6 +14,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from shapely.geometry import MultiLineString
 from shapely.geometry.base import BaseGeometry
 from shapely.strtree import STRtree
+from shapely import is_valid, make_valid
 
 from irsim.config import env_param, world_param
 from irsim.config.path_param import path_manager
@@ -564,16 +565,28 @@ class ObjectBase:
             bool: True if collision occurs, False otherwise.
         """
 
+        # Validate and fix geometries to prevent TopologyException
+        self_geom = self.geometry
+        obj_geom = obj._geometry
+        
+        if self_geom is None or obj_geom is None:
+            return False
+        
+        if not is_valid(self_geom):
+            self_geom = make_valid(self_geom)
+        if not is_valid(obj_geom):
+            obj_geom = make_valid(obj_geom)
+
         if obj.shape == "map":
-            line_strings = list(obj._geometry.geoms)
+            line_strings = list(obj_geom.geoms)
             tree = STRtree(line_strings)
-            candidate_indices = tree.query(self.geometry)
+            candidate_indices = tree.query(self_geom)
             filtered_lines = [line_strings[i] for i in candidate_indices]
             filtered_multi_line = MultiLineString(filtered_lines)
 
-            return shapely.intersects(self.geometry, filtered_multi_line)
+            return shapely.intersects(self_geom, filtered_multi_line)
 
-        return shapely.intersects(self.geometry, obj._geometry)
+        return shapely.intersects(self_geom, obj_geom)
 
     def gen_behavior_vel(self, velocity: Optional[np.ndarray] = None) -> np.ndarray:
         """
