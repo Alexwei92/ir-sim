@@ -837,7 +837,6 @@ def draw_patch(
         codes = []
 
         def add_ring(v):
-            # v expected shape: 2xN
             ring = v.T
             if not (ring[0] == ring[-1]).all():
                 ring = list(ring) + [ring[0]]
@@ -868,25 +867,6 @@ def draw_patch(
             linestyle=linestyle,
             fill=fill,
         )
-        # created_element = []
-        # for v in vertices:
-        #     if v is None:
-        #         raise ValueError("polygon requires vertices (2xN)")
-        #     patch = Polygon(v.T)
-        #     created_element_polygon = ax.add_patch(patch)
-        #     set_patch_property(
-        #         created_element_polygon,
-        #         ax,
-        #         state=state,  # vertices are absolute
-        #         color=color,
-        #         facecolor=facecolor,
-        #         edgecolor=edgecolor,
-        #         alpha=alpha,
-        #         zorder=zorder,
-        #         linestyle=linestyle,
-        #         fill=fill,
-        #     )
-        #     created_element.append(created_element_polygon)
 
     else:
         raise ValueError(f"Unsupported shape type: {shape}")

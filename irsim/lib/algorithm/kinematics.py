@@ -163,6 +163,7 @@ def omni_kinematics(
 
     return state[0:2] + real_velocity * step_time
 
+
 def tractor_trailer_kinematics(
     state: np.ndarray,
     velocity: np.ndarray,
