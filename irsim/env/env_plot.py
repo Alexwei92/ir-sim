@@ -21,6 +21,8 @@ import numpy as np
 from matplotlib.lines import Line2D
 from matplotlib.patches import Arrow, Circle, Ellipse, Polygon, Rectangle, Wedge
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.path import Path
+from matplotlib.patches import PathPatch
 
 from irsim.config import env_param, world_param
 from irsim.config.path_param import path_manager as pm
@@ -825,6 +827,66 @@ def draw_patch(
                 line2d.set_zorder(zorder)
             ax.add_line(line2d)
             created_element = line2d
+
+    # Multipolygon
+    elif shape in ["multipolygon", "mosaic", "tractor_trailer"]:
+        if not isinstance(vertices, list):
+            raise ValueError("multipolygon requires a list of vertices")
+
+        verts = []
+        codes = []
+
+        def add_ring(v):
+            # v expected shape: 2xN
+            ring = v.T
+            if not (ring[0] == ring[-1]).all():
+                ring = list(ring) + [ring[0]]
+            verts.extend(ring)
+            codes.extend(
+                [Path.MOVETO]
+                + [Path.LINETO] * (len(ring) - 2)
+                + [Path.CLOSEPOLY]
+            )
+
+        for v in vertices:
+            if v is None:
+                raise ValueError("polygon requires vertices (2xN)")
+            add_ring(v)
+
+        patch = PathPatch(Path(verts, codes))
+        created_element = ax.add_patch(patch)
+
+        set_patch_property(
+            created_element,
+            ax,
+            state=state,
+            color=color,
+            facecolor=facecolor,
+            edgecolor=edgecolor,
+            alpha=alpha,
+            zorder=zorder,
+            linestyle=linestyle,
+            fill=fill,
+        )
+        # created_element = []
+        # for v in vertices:
+        #     if v is None:
+        #         raise ValueError("polygon requires vertices (2xN)")
+        #     patch = Polygon(v.T)
+        #     created_element_polygon = ax.add_patch(patch)
+        #     set_patch_property(
+        #         created_element_polygon,
+        #         ax,
+        #         state=state,  # vertices are absolute
+        #         color=color,
+        #         facecolor=facecolor,
+        #         edgecolor=edgecolor,
+        #         alpha=alpha,
+        #         zorder=zorder,
+        #         linestyle=linestyle,
+        #         fill=fill,
+        #     )
+        #     created_element.append(created_element_polygon)
 
     else:
         raise ValueError(f"Unsupported shape type: {shape}")
