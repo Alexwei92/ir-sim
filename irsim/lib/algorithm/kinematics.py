@@ -138,14 +138,14 @@ def omni_kinematics(
     Calculate the next position for an omnidirectional robot.
 
     Args:
-        state: A 2x1 vector [x, y] representing the current position.
-        velocity: A 2x1 vector [vx, vy] representing the current velocities.
+        state: A 3x1 vector [x, y, theta] representing the current position.
+        velocity: A 2x1 vector [vx, vy] or 3x1 vector [vx, vy, wz] representing the current velocities.
         step_time: The time step for the simulation.
         noise: Boolean indicating whether to add noise to the velocity (default False).
         alpha: List of noise parameters for the velocity model (default [0.03, 0.03]). alpha[0] is for x velocity, alpha[1] is for y velocity.
 
     Returns:
-        new_position: A 2x1 vector [x, y] representing the next position.
+        new_position: A 2x1 vector [x, y] or 3x1 vector [x, y, theta] representing the next state.
     """
     if alpha is None:
         alpha = [0.03, 0, 0, 0.03]
@@ -153,6 +153,21 @@ def omni_kinematics(
     assert velocity.shape[0] >= 2
     assert state.shape[0] >= 2
 
+    if velocity.shape[0] == 3:
+        real_velocity = velocity
+        if noise:
+            assert len(alpha) >= 2
+            std_vx = np.sqrt(alpha[0])
+            std_vy = np.sqrt(alpha[-1])
+            real_velocity[0, 0] += rng.normal(0, std_vx)
+            real_velocity[1, 0] += rng.normal(0, std_vy)
+            
+        phi = state[2, 0]
+        co_matrix = np.array([[cos(phi), -sin(phi), 0], [sin(phi), cos(phi), 0], [0, 0, 1]])
+        next_state = state[0:3] + co_matrix @ real_velocity * step_time
+        next_state[2, 0] = WrapToPi(next_state[2, 0])
+        return next_state
+    
     if noise:
         assert len(alpha) >= 2
         std_vx = np.sqrt(alpha[0])

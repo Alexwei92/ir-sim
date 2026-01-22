@@ -59,16 +59,19 @@ class OmniKinematics(KinematicsHandler):
 
         Args:
             state (np.ndarray): Current state [x, y, theta, ...].
-            velocity (np.ndarray): Velocity [vx, vy].
+            velocity (np.ndarray): Velocity [vx, vy, wz].
             step_time (float): Time step.
 
         Returns:
             np.ndarray: New state (x, y updated; rest preserved).
         """
-        next_position = omni_kinematics(
-            state[0:2], velocity, step_time, self.noise, self.alpha
+        next_state = omni_kinematics(
+            state, velocity, step_time, self.noise, self.alpha
         )
-        return np.concatenate((next_position, state[2:]))
+        if velocity.shape[0] == 2:
+            return np.concatenate((next_state[0:2], state[2:]))
+        else:
+            return next_state
 
 
 class DifferentialKinematics(KinematicsHandler):
