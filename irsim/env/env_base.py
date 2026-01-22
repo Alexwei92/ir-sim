@@ -948,7 +948,13 @@ class EnvBase:
         """
         Get the current velocity of the robot.
         """
-        return self.robot._velocity
+        if self.robot.kinematics == "acker":
+            vx = self.robot._velocity[0, 0]
+            steer = self.robot._state[3, 0]
+            wz = vx * np.tan(steer) / self.robot.wheelbase
+            return np.array([vx, wz])
+        else:
+            return self.robot._velocity
 
     def get_lidar_scan(self, id: int = 0) -> dict[str, Any]:
         """
