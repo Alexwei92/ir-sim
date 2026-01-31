@@ -3,18 +3,18 @@ from typing import Any
 from irsim.world.object_base import ObjectBase
 
 
-class RobotTractorTrailer(ObjectBase):
+class RobotRangerMiniV3(ObjectBase):
     def __init__(
         self,
         color: str = "y",
-        state_dim: int = 5,
+        state_dim: int = 3,
         **kwargs: Any,
     ) -> None:
-        """Create a tractor-trailer robot.
+        """Create a Ranger Mini V3 robot.
 
         Args:
             color (str): Display color. Default "y".
-            state_dim (int): State vector dimension (>=4 for [x,y,theta,steer]).
+            state_dim (int): State vector dimension (>=4 for [x,y,theta]).
             **kwargs: Forwarded to ``ObjectBase``.
         """
         super().__init__(
@@ -24,6 +24,6 @@ class RobotTractorTrailer(ObjectBase):
             **kwargs,
         )
 
-        assert state_dim >= 5, (
-            "for tractor-trailer robot, the state dimension should be greater than 5"
+        assert state_dim >= 3, (
+            "for rangerminiv3 robot, the state dimension should be greater than 3"
         )

@@ -8,6 +8,7 @@ from irsim.lib.algorithm.kinematics import (
     differential_kinematics,
     omni_kinematics,
     tractor_trailer_kinematics,
+    rangerminiv3_kinematics,
 )
 
 
@@ -153,6 +154,16 @@ class TractorTrailerKinematics(KinematicsHandler):
     def step(
         self, state: np.ndarray, velocity: np.ndarray, step_time: float
     ) -> np.ndarray:
+        """Advance Tractor-Trailer state one step.
+
+        Args:
+            state (np.ndarray): Current state [x, y, theta, phi, steer].
+            velocity (np.ndarray): [linear, steer_angle].
+            step_time (float): Time step.
+
+        Returns:
+            np.ndarray: Next state.
+        """
         return tractor_trailer_kinematics(
             state,
             velocity,
@@ -163,6 +174,29 @@ class TractorTrailerKinematics(KinematicsHandler):
             self.wheelbase,
             self.trailer_length,
             self.hitch_length,
+        )
+
+
+class RangerMiniV3Kinematics(KinematicsHandler):
+    def __init__(self, name, noise, alpha):
+        super().__init__(name, noise, alpha)
+
+    def step(
+        self, state: np.ndarray, velocity: np.ndarray, step_time: float
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Advance Ranger Mini V3 state one step.
+
+        Args:
+            state (np.ndarray): Current state [x, y, theta].
+            velocity (np.ndarray): [vx, vy, wz].
+            step_time (float): Time step.
+
+        Returns:
+            np.ndarray: Next state.
+            np.ndarray: Next velocity.
+        """
+        return rangerminiv3_kinematics(
+            state, velocity, step_time
         )
 
 
@@ -202,6 +236,8 @@ class KinematicsFactory:
         #     return Rigid3DKinematics(name, noise, alpha)
         if name == "tractor_trailer":
             return TractorTrailerKinematics(name, noise, alpha, mode, wheelbase or 1.0, kwargs.get("trailer_length", 1.5), kwargs.get("hitch_length", 1.0))
+        if name == "rangerminiv3":
+            return RangerMiniV3Kinematics(name, noise, alpha)
         if role == "robot":
             print(f"Unknown kinematics type: {name}, the robot will be stationary.")
         else:

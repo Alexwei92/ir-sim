@@ -11,5 +11,6 @@ from .robot_acker import RobotAcker
 from .robot_diff import RobotDiff
 from .robot_omni import RobotOmni
 from .robot_tractor_trailer import RobotTractorTrailer
+from .robot_rangerminiv3 import RobotRangerMiniV3
 
-__all__ = ["RobotAcker", "RobotDiff", "RobotOmni", "RobotTractorTrailer"]
+__all__ = ["RobotAcker", "RobotDiff", "RobotOmni", "RobotTractorTrailer", "RobotRangerMiniV3"]

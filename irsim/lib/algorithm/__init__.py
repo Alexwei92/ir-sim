@@ -8,7 +8,7 @@ This package contains:
 """
 
 from .generation import generate_polygon, random_generate_polygon
-from .kinematics import ackermann_kinematics, differential_kinematics, omni_kinematics, tractor_trailer_kinematics
+from .kinematics import ackermann_kinematics, differential_kinematics, omni_kinematics, tractor_trailer_kinematics, rangerminiv3_kinematics
 from .rvo import reciprocal_vel_obs
 
 __all__ = [
@@ -16,7 +16,8 @@ __all__ = [
     "differential_kinematics",
     "generate_polygon",
     "omni_kinematics",
-    "tractor_trailer_kinematics",
     "random_generate_polygon",
     "reciprocal_vel_obs",
+    "tractor_trailer_kinematics",
+    "rangerminiv3_kinematics",
 ]

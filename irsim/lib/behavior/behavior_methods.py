@@ -248,6 +248,38 @@ def beh_tractor_trailer_dash(
     return TractorTrailerDash(state, goal, max_vel, goal_threshold, angle_tolerance)
 
 
+# @register_behavior("rangerminiv3", "dash")
+# def beh_rangerminiv3_dash(
+#     ego_object: Any, external_objects: list[Any], **kwargs: Any
+# ) -> np.ndarray:
+#     """
+#     Behavior function for Ranger Mini V3 robot using dash-to-goal behavior.
+
+#     Args:
+#         ego_object: The ego robot object.
+#         external_objects (list): List of external objects in the environment.
+#         **kwargs: Additional keyword arguments:
+#             - angle_tolerance (float): Allowable angular deviation, default 0.1.
+
+#     Returns:
+#         np.array: Velocity [linear, steering angle] (2x1) for Ackermann drive.
+#     """
+
+#     if ego_object.goal is None:
+#         if world_param.count % 10 == 0:
+#             env_param.logger.warning(
+#                 "Goal is currently None. This rvo behavior is waiting for goal configuration"
+#             )
+#         return np.zeros((2, 1))
+
+#     state = ego_object.state
+#     goal = ego_object.goal
+#     goal_threshold = ego_object.goal_threshold
+#     _, max_vel = ego_object.get_vel_range()
+#     angle_tolerance = kwargs.get("angle_tolerance", 0.1)
+
+#     return RangerMiniV3Dash(state, goal, max_vel, goal_threshold, angle_tolerance)
+
 def OmniRVO(
     state_tuple: Any,
     neighbor_list: Optional[list[Any]] = None,
@@ -474,3 +506,29 @@ def TractorTrailerDash(
         steer_opt = np.clip(diff_radian, -max_vel[1, 0], max_vel[1, 0])
 
     return np.array([[v_opt], [steer_opt]])
+
+
+# def RangerMiniV3Dash(
+#     state: np.ndarray,
+#     goal: np.ndarray,
+#     max_vel: np.ndarray,
+#     goal_threshold: float,
+#     angle_tolerance: float,
+# ) -> np.ndarray:
+#     """
+#     Calculate the Ranger Mini V3 velocity to reach a goal.
+#     """
+#     dis, radian = relative_position(state, goal)
+#     steer_opt = 0.0
+#     diff_radian = WrapToPi(radian - state[2, 0])
+
+#     if diff_radian > -angle_tolerance and diff_radian < angle_tolerance:
+#         diff_radian = 0
+
+#     if dis < goal_threshold:
+#         v_opt, steer_opt = 0, 0
+#     else:
+#         v_opt = max_vel[0, 0]
+#         steer_opt = np.clip(diff_radian, -max_vel[1, 0], max_vel[1, 0])
+
+#     return np.array([[v_opt], [steer_opt]])

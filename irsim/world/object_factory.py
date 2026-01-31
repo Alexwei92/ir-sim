@@ -16,6 +16,7 @@ from irsim.world.robots.robot_acker import RobotAcker
 from irsim.world.robots.robot_diff import RobotDiff
 from irsim.world.robots.robot_omni import RobotOmni
 from irsim.world.robots.robot_tractor_trailer import RobotTractorTrailer
+from irsim.world.robots.robot_rangerminiv3 import RobotRangerMiniV3
 
 # from irsim.world.robots.robot_rigid3d import RobotRigid3D
 
@@ -159,6 +160,8 @@ class ObjectFactory:
             return RobotOmni(kinematics=kinematics, **kwargs)
         if kinematics_name == "tractor_trailer":
             return RobotTractorTrailer(kinematics=kinematics, **kwargs)
+        if kinematics_name == "rangerminiv3":
+            return RobotRangerMiniV3(kinematics=kinematics, **kwargs)
         if kinematics_name == "static" or kinematics_name is None:
             return ObjectStatic(kinematics=kinematics, role="robot", **kwargs)
         # elif kinematics_name == "rigid3d":
