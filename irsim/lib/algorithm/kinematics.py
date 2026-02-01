@@ -294,6 +294,8 @@ def rangerminiv3_kinematics(
     max_round_angle = 0.935671
     min_turn_radius = 0.4764
 
+    eps = 1e-6
+    
     assert state.shape[0] >= 3
     assert velocity.shape[0] >= 3
     
@@ -301,11 +303,12 @@ def rangerminiv3_kinematics(
         linear = abs(velocity[0, 0])
         angular = abs(velocity[2, 0])
 
-        # Circular motion
-        if abs(angular) < 1e-6:
+        # Do not return nan radius
+        if angular < eps:
             radius = float('inf')
         else:
             radius = linear / angular
+        
         k = 1.0 if (velocity[2, 0] * velocity[0, 0] >= 0) else -1.0
 
         l = wheelbase
@@ -344,7 +347,6 @@ def rangerminiv3_kinematics(
             motion_mode = "MOTION_MODE_SPINNING"
         else:
             motion_mode = "MOTION_MODE_DUAL_ACKERMANN"
-    print(f"motion_mode: {motion_mode}")
 
     if motion_mode == "MOTION_MODE_DUAL_ACKERMANN":
         steer_cmd = np.clip(
@@ -368,7 +370,10 @@ def rangerminiv3_kinematics(
         next_velocity = np.array([[v], [0.0], [2.0 * v * np.sin(phi) / wheelbase]])
 
     elif motion_mode == "MOTION_MODE_PARALLEL":
-        steer_cmd = np.arctan(velocity[1, 0] / velocity[0, 0])
+        if abs(velocity[0, 0]) < eps:
+            steer_cmd = 0.0
+        else:   
+            steer_cmd = np.arctan(velocity[1, 0] / velocity[0, 0])
 
         if np.signbit(velocity[0, 0] and velocity[0, 0] == 0.0):
             steer_cmd = -steer_cmd

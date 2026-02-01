@@ -446,10 +446,10 @@ class ObjectBase:
             self._velocity = np.zeros(self.vel_shape)
             return self.state
         self.pre_process()
+        behavior_vel = self.gen_behavior_vel(velocity)
         if self.kf.name == "rangerminiv3":
-            new_state, behavior_vel = self.kf.step(self.state, velocity.reshape(3, 1), world_param.step_time)
+            new_state, behavior_vel = self.kf.step(self.state, behavior_vel, world_param.step_time)
         else:
-            behavior_vel = self.gen_behavior_vel(velocity)
             new_state = self.kf.step(self.state, behavior_vel, world_param.step_time)
         
         next_state = self.mid_process(new_state)
