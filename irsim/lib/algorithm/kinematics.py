@@ -315,8 +315,11 @@ def rangerminiv3_kinematics(
         # w = track
         # x = np.sqrt(radius **2 + (l / 2) **2)
         # phi_i = np.arctan((l / 2) / (x - w / 2))
-        phi_i = np.arctan((l / 2) / radius)
-        return k * phi_i, radius
+        if radius == 0:
+            phi = 0.0
+        else:   
+            phi = np.arctan((l / 2) / radius)
+        return k * phi, radius
 
     def ConvertInnerAngleToCentral(angle):
         phi_i = abs(angle)
